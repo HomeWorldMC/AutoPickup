@@ -15,8 +15,10 @@ import net.risingworld.api.utils.SoundInformation;
 
 public class AutoPickup extends Plugin implements Listener {
 	private World world;
-	private long lastDrop;
-	private long dropCooldown;
+	
+	private long lastDrop; // yeah I know. needs to be set per player...we'll get there
+	private long dropCooldown; // ditto
+	
 	public SoundInformation pickupSound;	
 
 	public void onDisable() { }
