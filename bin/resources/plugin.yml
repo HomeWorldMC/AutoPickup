@@ -1,0 +1,8 @@
+name: AutoPickup
+main: main.AutoPickup
+version: 1.0.0
+author: Tex
+team: Tex
+description: "Auto pickup items on the ground."
+license: None
+website: http://www.thehomeworld.org
