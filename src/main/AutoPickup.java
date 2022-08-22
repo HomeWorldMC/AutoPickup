@@ -73,10 +73,12 @@ public class AutoPickup extends Plugin implements Listener {
 			case 2:
 				if(cmdParams[0].equals("/ap") && cmdParams[1].equals("disable")) {
 					disabled.put(cmdPlayer, true);
+					cmdPlayer.sendTextMessage("AutoPickup Disabled.");
 				}
 				
 				if(cmdParams[0].equals("/ap") && cmdParams[1].equals("enable")) {
 					disabled.put(cmdPlayer, false);
+					cmdPlayer.sendTextMessage("AutoPickup Enabled.");
 				}
 				break;
 			default:
