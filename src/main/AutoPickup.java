@@ -19,20 +19,14 @@ public class AutoPickup extends Plugin implements Listener {
 	private World world;
 	private long lastDrop;
 	private long dropCooldown;
-	public SoundInformation pickupSound;
-	
-	
+	public SoundInformation pickupSound;	
 
-	public void onDisable() {
-		// TODO Auto-generated method stub
-		
-	}
+	public void onDisable() { }
 
 	public void onEnable() {
         world = getWorld();
+        pickupSound = new SoundInformation(getPath() + "/sounds/pickup.ogg");
         
-        pickupSound = new SoundInformation(getPath() + "/Sounds/pickup.ogg");
-
         registerEventListener(this);
         
         Date date = new Date();
