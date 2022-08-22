@@ -8,6 +8,7 @@ import net.risingworld.api.World;
 import net.risingworld.api.events.EventMethod;
 import net.risingworld.api.events.Listener;
 import net.risingworld.api.events.player.PlayerChangePositionEvent;
+import net.risingworld.api.events.player.PlayerCommandEvent;
 import net.risingworld.api.events.player.PlayerConnectEvent;
 import net.risingworld.api.events.player.PlayerDisconnectEvent;
 import net.risingworld.api.events.player.PlayerDropItemEvent;
@@ -21,7 +22,9 @@ public class AutoPickup extends Plugin implements Listener {
 	private World world;
 	private long dropCooldown;	
 	private HashMap<Player, Long> lastDropTimes;	
-	public SoundInformation pickupSound;	
+	public SoundInformation pickupSound;
+	
+	private HashMap<Player, Boolean> disabled;	
 	
 	public void onDisable() { }
 
@@ -30,14 +33,10 @@ public class AutoPickup extends Plugin implements Listener {
         pickupSound = new SoundInformation(getPath() + "/sounds/pickup.ogg");
         
         lastDropTimes = new HashMap<Player, Long>();
+        disabled = new HashMap<Player, Boolean>();
         
         registerEventListener(this);
         
-        //Date date = new Date();
-		//long timeMilli = date.getTime();
-		
-		//lastDrop = timeMilli;
-       
 		dropCooldown = 2000;
 		
 		System.out.println("Autopickup enabled!");		
@@ -47,11 +46,13 @@ public class AutoPickup extends Plugin implements Listener {
     public void onPlayerConnect(final PlayerConnectEvent event) {
 		Date date = new Date();
 		lastDropTimes.put(event.getPlayer(), date.getTime());
+		disabled.put(event.getPlayer(), false);
 	}
 	
 	@EventMethod
     public void onPlayerDisconnect(final PlayerDisconnectEvent event) {
 		lastDropTimes.remove(event.getPlayer());
+		disabled.remove(event.getPlayer());
 	}
 	
 	@EventMethod
@@ -61,47 +62,72 @@ public class AutoPickup extends Plugin implements Listener {
 	}
 	
 	@EventMethod
-	public void onPlayerChangePosition(final PlayerChangePositionEvent event) {
-		Date date = new Date();
+    public void onPlayerCommand(final PlayerCommandEvent event) {
+		Player cmdPlayer = event.getPlayer();	
+		String[] cmdParams = event.getCommand().split(" ");
 		
-		if( (date.getTime() - lastDropTimes.get(event.getPlayer())) > dropCooldown) {
-			WorldItem worldItem = world.findNearestItem(event.getPlayer().getPosition());			
-			String itemType = worldItem.getDefinition().getType();			
-			float distanceToItem = worldItem.getPosition().distance(event.getPlayer().getPosition());				
-			boolean canAddItem = false;
+		switch(cmdParams.length) {
+			case 1:
+				
+				break;
+			case 2:
+				if(cmdParams[0].equals("/ap") && cmdParams[1].equals("disable")) {
+					disabled.put(cmdPlayer, true);
+				}
+				
+				if(cmdParams[0].equals("/ap") && cmdParams[1].equals("enable")) {
+					disabled.put(cmdPlayer, false);
+				}
+				break;
+			default:
 			
-			if(!worldItem.isDummy()) {
-				canAddItem = inventoryCheck(event.getPlayer(), worldItem);
-			}			
+		}
+	}
+	
+	@EventMethod
+	public void onPlayerChangePosition(final PlayerChangePositionEvent event) {
+		if(!disabled.get(event.getPlayer())) {
+			Date date = new Date();
 			
-			if(distanceToItem < 3 && canAddItem && !worldItem.isDummy()) {
-				if(itemType == "BLOCK" || itemType == "PLANT" || itemType == "OBJECT" || itemType == "DEFAULT"  || itemType == "ORE") { // temporary 
-					worldItem.applyPhysicalImpulse(event.getPlayer().getPosition().subtract(worldItem.getPosition()).mult(2f));
-					
-					if(distanceToItem < 2) {
-						Item.Attribute attribute = worldItem.getAttribute();
-						Item.ObjectAttribute objAtt = null;
+			if( (date.getTime() - lastDropTimes.get(event.getPlayer())) > dropCooldown) {
+				WorldItem worldItem = world.findNearestItem(event.getPlayer().getPosition());			
+				String itemType = worldItem.getDefinition().getType();			
+				float distanceToItem = worldItem.getPosition().distance(event.getPlayer().getPosition());				
+				boolean canAddItem = false;
+				
+				if(!worldItem.isDummy()) {
+					canAddItem = inventoryCheck(event.getPlayer(), worldItem);
+				}			
+				
+				if(distanceToItem < 3 && canAddItem && !worldItem.isDummy()) {
+					if(itemType == "BLOCK" || itemType == "PLANT" || itemType == "OBJECT" || itemType == "DEFAULT"  || itemType == "ORE") { // temporary 
+						worldItem.applyPhysicalImpulse(event.getPlayer().getPosition().subtract(worldItem.getPosition()).mult(2f));
 						
-						switch(itemType) {						
-							case "OBJECT":
-								objAtt = (Item.ObjectAttribute) attribute;	
-								if(objAtt != null) {
-									event.getPlayer().getInventory().insertNewObjectItem((short) objAtt.getObjectID(), worldItem.getVariation(),worldItem.getStacksize());
-								} else {
+						if(distanceToItem < 2) {
+							Item.Attribute attribute = worldItem.getAttribute();
+							Item.ObjectAttribute objAtt = null;
+							
+							switch(itemType) {						
+								case "OBJECT":
+									objAtt = (Item.ObjectAttribute) attribute;	
+									if(objAtt != null) {
+										event.getPlayer().getInventory().insertNewObjectItem((short) objAtt.getObjectID(), worldItem.getVariation(),worldItem.getStacksize());
+									} else {
+										event.getPlayer().getInventory().insertNewItem(worldItem.getDefinition().getID(), worldItem.getVariation(),worldItem.getStacksize());
+									}
+	
+									break;
+								default:
 									event.getPlayer().getInventory().insertNewItem(worldItem.getDefinition().getID(), worldItem.getVariation(),worldItem.getStacksize());
-								}
-
-								break;
-							default:
-								event.getPlayer().getInventory().insertNewItem(worldItem.getDefinition().getID(), worldItem.getVariation(),worldItem.getStacksize());
+							}
+							
+							worldItem.destroy();
+							event.getPlayer().playSound(pickupSound, event.getPlayer().getPosition());
 						}
-						
-						worldItem.destroy();
-						event.getPlayer().playSound(pickupSound, event.getPlayer().getPosition());
 					}
 				}
-			}
-		} 
+			} 
+		}
 	}
 	
 	private boolean inventoryCheck(Player player, WorldItem checkItem) {
