@@ -6,9 +6,7 @@ import net.risingworld.api.World;
 import net.risingworld.api.events.EventMethod;
 import net.risingworld.api.events.Listener;
 import net.risingworld.api.events.player.PlayerChangePositionEvent;
-import net.risingworld.api.events.player.PlayerConnectEvent;
 import net.risingworld.api.events.player.PlayerDropItemEvent;
-import net.risingworld.api.gui.GuiLabel;
 import net.risingworld.api.objects.Inventory;
 import net.risingworld.api.objects.Item;
 import net.risingworld.api.objects.Player;
@@ -40,12 +38,6 @@ public class AutoPickup extends Plugin implements Listener {
 	}
 	
 	@EventMethod
-    public void onPlayerConnect(final PlayerConnectEvent event) {
-
-		
-	}
-	
-	@EventMethod
 	public void onPlayerDropItem(final PlayerDropItemEvent event) {
 		Date date = new Date();
 		lastDrop = date.getTime();
@@ -54,39 +46,19 @@ public class AutoPickup extends Plugin implements Listener {
 	@EventMethod
 	public void onPlayerChangePosition(final PlayerChangePositionEvent event) {
 		Date date = new Date();
-		final GuiLabel debugLabel4 = (GuiLabel) event.getPlayer().getAttribute("Debug-Label4");
-		final GuiLabel debugLabel5 = (GuiLabel) event.getPlayer().getAttribute("Debug-Label5");
-		
 		
 		if( (date.getTime() - lastDrop) > dropCooldown) {
-			WorldItem worldItem = world.findNearestItem(event.getPlayer().getPosition());
-			
-			String itemType = worldItem.getDefinition().getType();
-			
-			float distanceToItem = worldItem.getPosition().distance(event.getPlayer().getPosition());	
-			
+			WorldItem worldItem = world.findNearestItem(event.getPlayer().getPosition());			
+			String itemType = worldItem.getDefinition().getType();			
+			float distanceToItem = worldItem.getPosition().distance(event.getPlayer().getPosition());				
 			boolean canAddItem = false;
 			
 			if(!worldItem.isDummy()) {
 				canAddItem = inventoryCheck(event.getPlayer(), worldItem);
-			} 
-			
-			debugLabel4.setText("Can Add Nearest Item: " + canAddItem);
-			
-			if(worldItem != null) {
-				debugLabel5.setText(
-					"Nearest Item: " + worldItem.getName() + 
-					", Type: " + itemType + 
-					", Status: " + worldItem.getStatus() +
-					", Value: " + worldItem.getValue() +
-					", Attribute: " + worldItem.getAttribute() +
-					", IsDummy: " + worldItem.isDummy() +
-					", Variation: " + worldItem.getVariation()
-				);
-			}
+			}			
 			
 			if(distanceToItem < 3 && canAddItem && !worldItem.isDummy()) {
-				if(itemType == "BLOCK" || itemType == "PLANT" || itemType == "OBJECT" || itemType == "DEFAULT"  || itemType == "ORE") { // temporary if block
+				if(itemType == "BLOCK" || itemType == "PLANT" || itemType == "OBJECT" || itemType == "DEFAULT"  || itemType == "ORE") { // temporary 
 					worldItem.applyPhysicalImpulse(event.getPlayer().getPosition().subtract(worldItem.getPosition()).mult(2f));
 					
 					if(distanceToItem < 2) {
@@ -116,14 +88,10 @@ public class AutoPickup extends Plugin implements Listener {
 	}
 	
 	private boolean inventoryCheck(Player player, WorldItem checkItem) {
-		String inventoryList = "-empty-";
-		
 		int inventorySlotCount = player.getInventory().getSlotCount(Inventory.SlotType.Inventory);
 		int quickSlotCount = player.getInventory().getSlotCount(Inventory.SlotType.Quickslot);
 		
 		boolean canAdd = false;
-		
-		//final GuiLabel inventoryOutput = (GuiLabel) player.getAttribute("inventoryOutput");
 		
 		int checkItemId;
 		int checkItemVariation;
@@ -186,28 +154,12 @@ public class AutoPickup extends Plugin implements Listener {
 						int stackSize = inventoryItem.getStacksize();
 						int itemMaxStackSize = inventoryItem.getMaxStacksize();
 						
-						if(stackSize < itemMaxStackSize) {
-							if(inventoryList == "-empty-") {
-								inventoryList = "Slot " + i + " - Item: " + inventoryItem.getName() + ", Stack Size: " + inventoryItem.getStacksize() +", Max Stack Size: " + inventoryItem.getMaxStacksize() +
-										", checkItemId: " + checkItemId + ", checkItemVariation: " + checkItemVariation +
-										", inventItemId: " + inventItemId + ", inventItemVariation: " + inventItemVariation;
-							} else {
-								inventoryList += "\nSlot " + i + " - Item: " + inventoryItem.getName() + ", Stack Size: " + inventoryItem.getStacksize() +", Max Stack Size: " + inventoryItem.getMaxStacksize() +
-									", checkItemId: " + checkItemId + ", checkItemVariation: " + checkItemVariation +
-									", inventItemId: " + inventItemId + ", inventItemVariation: " + inventItemVariation;
-							}					
+						if(stackSize < itemMaxStackSize) {					
 							canAdd = true;
 						}
 					} 
 				} 
 			} else {
-				if(inventoryList == "-empty-") {
-					inventoryList = "Slot " + i + " - [empty]" +
-							", checkItemId: " + checkItemId + ", checkItemVariation: " + checkItemVariation;
-				} else {
-					inventoryList += "\nSlot " + i + " - [empty]" +
-							", checkItemId: " + checkItemId + ", checkItemVariation: " + checkItemVariation;
-				}
 				canAdd = true;
 			}
 		}
@@ -241,32 +193,16 @@ public class AutoPickup extends Plugin implements Listener {
 						int itemMaxStackSize = quickSlotItem.getMaxStacksize();
 						
 						if(stackSize < itemMaxStackSize) {
-							if(inventoryList == "-empty-") {
-								inventoryList = "QuickSlot " + i + " - Item: " + quickSlotItem.getName() + ", Stack Size: " + quickSlotItem.getStacksize() +", Max Stack Size: " + quickSlotItem.getMaxStacksize() +
-										", checkItemId: " + checkItemId + ", checkItemVariation: " + checkItemVariation +
-										", inventItemId: " + inventItemId + ", inventItemVariation: " + inventItemVariation;
-							} else {
-								inventoryList += "\nQuickSlot " + i + " - Item: " + quickSlotItem.getName() + ", Stack Size: " + quickSlotItem.getStacksize() +", Max Stack Size: " + quickSlotItem.getMaxStacksize() +
-									", checkItemId: " + checkItemId + ", checkItemVariation: " + checkItemVariation +
-									", inventItemId: " + inventItemId + ", inventItemVariation: " + inventItemVariation;
-							}					
 							canAdd = true;
 						}
 					} 
 				} 
 			} else {
-				if(inventoryList == "-empty-") {
-					inventoryList = "QuickSlot " + i + " - [empty]" +
-							", checkItemId: " + checkItemId + ", checkItemVariation: " + checkItemVariation;
-				} else {
-					inventoryList += "\nQuickSlot " + i + " - [empty]" +
-							", checkItemId: " + checkItemId + ", checkItemVariation: " + checkItemVariation;
-				}
 				canAdd = true;
 			}
 		}
 		
-		// special cases list
+		// special cases list - will probably grow
 		switch(checkItem.getName()) {
 			case "m14":
 				canAdd = false;
@@ -277,12 +213,7 @@ public class AutoPickup extends Plugin implements Listener {
 			default:
 			
 		}
-
 		
-		//inventoryOutput.setText(inventoryList);
 		return canAdd;
 	}
-	
-	
-
 }
