@@ -129,6 +129,7 @@ public class AutoPickup extends Plugin implements Listener {
 		Item.Attribute attribute = checkItem.getAttribute();
 		Item.ObjectAttribute objAtt = null;
 
+		// check inventory
 		for(int i = 0; i < inventorySlotCount; i++) {
 			Item inventoryItem = player.getInventory().getItem(i, Inventory.SlotType.Inventory);
 			
@@ -166,6 +167,7 @@ public class AutoPickup extends Plugin implements Listener {
 			}
 		}
 		
+		// check quickslots
 		for(int i = 0; i < quickSlotCount; i++) {
 			Item quickSlotItem = player.getInventory().getItem(i, Inventory.SlotType.Quickslot);
 			
