@@ -9,5 +9,4 @@ This plugin is provided as is. I cannot guarantee its compatibility with other p
 <br>That said, I endevour to make sure the plugin will do what is on the tin. If you find an error, contact me at the Rising World <a href='https://forum.rising-world.net/'>forums</a> (user name = Textra) and let me know.
 <br>
 <br>
-Build Date - 2022-08-22 3:18PM (AEST)
-<a href = 'http://www.thehomeworld.org/resources/AutoPickup.7z'>Working Build</a>
+<a href = 'http://www.thehomeworld.org/resources/AutoPickup.7z'>Working Build</a> <font size='3'>(Build Date - 2022-08-22 3:18PM (AEST))</font>
