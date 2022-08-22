@@ -10,4 +10,4 @@ This plugin is provided as is. I cannot guarantee its compatibility with other p
 <br>
 <br>
 <a href = 'http://www.thehomeworld.org/resources/AutoPickup.7z'>Working Build</a> 
-<h1 style="font-size:10vw">(Build Date - 2022-08-22 3:18PM (AEST))</h1>
+<h1 style="font-size:3vw">(Build Date - 2022-08-22 3:18PM (AEST))</h1>
