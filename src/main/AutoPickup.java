@@ -1,11 +1,15 @@
 package main;
 
 import java.util.Date;
+import java.util.HashMap;
+
 import net.risingworld.api.Plugin;
 import net.risingworld.api.World;
 import net.risingworld.api.events.EventMethod;
 import net.risingworld.api.events.Listener;
 import net.risingworld.api.events.player.PlayerChangePositionEvent;
+import net.risingworld.api.events.player.PlayerConnectEvent;
+import net.risingworld.api.events.player.PlayerDisconnectEvent;
 import net.risingworld.api.events.player.PlayerDropItemEvent;
 import net.risingworld.api.objects.Inventory;
 import net.risingworld.api.objects.Item;
@@ -15,24 +19,24 @@ import net.risingworld.api.utils.SoundInformation;
 
 public class AutoPickup extends Plugin implements Listener {
 	private World world;
-	
-	private long lastDrop; // yeah I know. needs to be set per player...we'll get there
-	private long dropCooldown; // ditto
-	
+	private long dropCooldown;	
+	private HashMap<Player, Long> lastDropTimes;	
 	public SoundInformation pickupSound;	
-
+	
 	public void onDisable() { }
 
 	public void onEnable() {
         world = getWorld();
         pickupSound = new SoundInformation(getPath() + "/sounds/pickup.ogg");
         
+        lastDropTimes = new HashMap<Player, Long>();
+        
         registerEventListener(this);
         
-        Date date = new Date();
-		long timeMilli = date.getTime();
+        //Date date = new Date();
+		//long timeMilli = date.getTime();
 		
-		lastDrop = timeMilli;
+		//lastDrop = timeMilli;
        
 		dropCooldown = 2000;
 		
@@ -40,16 +44,27 @@ public class AutoPickup extends Plugin implements Listener {
 	}
 	
 	@EventMethod
+    public void onPlayerConnect(final PlayerConnectEvent event) {
+		Date date = new Date();
+		lastDropTimes.put(event.getPlayer(), date.getTime());
+	}
+	
+	@EventMethod
+    public void onPlayerDisconnect(final PlayerDisconnectEvent event) {
+		lastDropTimes.remove(event.getPlayer());
+	}
+	
+	@EventMethod
 	public void onPlayerDropItem(final PlayerDropItemEvent event) {
 		Date date = new Date();
-		lastDrop = date.getTime();
+		lastDropTimes.put(event.getPlayer(),date.getTime());
 	}
 	
 	@EventMethod
 	public void onPlayerChangePosition(final PlayerChangePositionEvent event) {
 		Date date = new Date();
 		
-		if( (date.getTime() - lastDrop) > dropCooldown) {
+		if( (date.getTime() - lastDropTimes.get(event.getPlayer())) > dropCooldown) {
 			WorldItem worldItem = world.findNearestItem(event.getPlayer().getPosition());			
 			String itemType = worldItem.getDefinition().getType();			
 			float distanceToItem = worldItem.getPosition().distance(event.getPlayer().getPosition());				
